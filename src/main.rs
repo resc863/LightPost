@@ -1,29 +1,60 @@
-use std::{env, net::SocketAddr, path::PathBuf, sync::Arc};
+use std::{error::Error, process::ExitCode};
 
-use lightpost::{build_app, AppState, BlogRepository};
+use lightpost::{build_app, AppState, Config, Repository};
 use tokio::net::TcpListener;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let data_dir = env::var_os("LIGHTPOST_DATA_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("data"));
-    std::fs::create_dir_all(&data_dir)?;
+async fn main() -> ExitCode {
+    match run().await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("error: {error}");
+            ExitCode::FAILURE
+        }
+    }
+}
 
-    let database_path = data_dir.join("blog.sqlite");
-    let repository = BlogRepository::open(&database_path)?;
-    let admin_token =
-        env::var("LIGHTPOST_ADMIN_TOKEN").unwrap_or_else(|_| "change-me-in-production".to_owned());
-    let state = AppState::new(Arc::new(repository), admin_token);
-    let app = build_app(state);
+async fn run() -> Result<(), Box<dyn Error>> {
+    let config = Config::from_env()?;
+    std::fs::create_dir_all(&config.data_dir)?;
+    let repository = Repository::open(config.data_dir.join("blog.sqlite"))?;
 
-    let port = env::var("LIGHTPOST_PORT")
-        .ok()
-        .and_then(|value| value.parse::<u16>().ok())
-        .unwrap_or(3000);
-    let address = SocketAddr::from(([127, 0, 0, 1], port));
+    let address = config.bind_addr;
+    let base_url = config.base_url.clone();
+    let app = build_app(AppState::new(repository, config));
     let listener = TcpListener::bind(address).await?;
-    println!("LightPost listening on http://{address}");
-    axum::serve(listener, app).await?;
+    println!("LightPost listening on http://{address} (public URL: {base_url})");
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+    println!("LightPost stopped");
     Ok(())
+}
+
+/// Resolves on Ctrl+C, or SIGTERM on Unix (sent by `docker stop` and systemd).
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        if let Err(error) = tokio::signal::ctrl_c().await {
+            eprintln!("cannot listen for Ctrl+C: {error}");
+            std::future::pending::<()>().await;
+        }
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut signal) => {
+                signal.recv().await;
+            }
+            Err(error) => {
+                eprintln!("cannot listen for SIGTERM: {error}");
+                std::future::pending::<()>().await;
+            }
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+    tokio::select! {
+        () = ctrl_c => {}
+        () = terminate => {}
+    }
 }

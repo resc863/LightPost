@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [int]$Port = 3000,
-    [string]$AdminToken = "local-secret",
+    [string]$BindHost = "127.0.0.1",
+    [string]$BaseUrl = "",
+    [string]$AdminToken = "local-dev-secret-token",
     [string]$DataDir = (Join-Path $PSScriptRoot "data"),
     [switch]$Release,
     [switch]$NoBuild,
@@ -42,10 +44,10 @@ $binaryPath = Join-Path $PSScriptRoot (Join-Path "target\$configuration" "lightp
 
 Write-Host "LightPost" -ForegroundColor Cyan
 Write-Host "  Root:      $PSScriptRoot"
-Write-Host "  Address:   http://127.0.0.1:$Port"
+Write-Host "  Address:   http://${BindHost}:$Port"
 Write-Host "  Data:      $resolvedDataDir"
 Write-Host "  Build:     $configuration"
-Write-Host "  Admin:     LIGHTPOST_ADMIN_TOKEN"
+Write-Host "  Admin:     http://${BindHost}:$Port/admin (LIGHTPOST_ADMIN_TOKEN)"
 
 if ($DryRun) {
     Write-Host "Dry run: 서버를 시작하지 않았습니다." -ForegroundColor Yellow
@@ -57,14 +59,16 @@ if ($DryRun) {
     exit 0
 }
 
-$environmentNames = @("LIGHTPOST_PORT", "LIGHTPOST_ADMIN_TOKEN", "LIGHTPOST_DATA_DIR", "CC", "RUST_BACKTRACE")
+$environmentNames = @("LIGHTPOST_HOST", "LIGHTPOST_PORT", "LIGHTPOST_BASE_URL", "LIGHTPOST_ADMIN_TOKEN", "LIGHTPOST_DATA_DIR", "CC", "RUST_BACKTRACE")
 $previousEnvironment = @{}
 foreach ($name in $environmentNames) {
     $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
 }
 
 try {
+    $env:LIGHTPOST_HOST = $BindHost
     $env:LIGHTPOST_PORT = $Port.ToString()
+    $env:LIGHTPOST_BASE_URL = $BaseUrl
     $env:LIGHTPOST_ADMIN_TOKEN = $AdminToken
     $env:LIGHTPOST_DATA_DIR = $resolvedDataDir
     $env:RUST_BACKTRACE = "1"
@@ -89,7 +93,7 @@ try {
     }
 
     if ($OpenBrowser) {
-        Start-Process "http://127.0.0.1:$Port/"
+        Start-Process "http://${BindHost}:$Port/"
     }
 
     Write-Host "서버를 시작합니다. 종료하려면 Ctrl+C를 누르세요." -ForegroundColor Green

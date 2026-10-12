@@ -88,6 +88,29 @@ button:hover { background: var(--accent); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .skip-link { position: fixed; top: -100px; left: 16px; padding: 10px 16px; background: var(--fg); color: var(--bg); z-index: 10; }
 .skip-link:focus { top: 12px; }
+.pagination { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 28px 0 0; font-size: 12px; }
+.pagination a { color: var(--accent); }
+.pagination a[rel="next"] { justify-self: end; }
+.error-state .empty-mark { font-family: Georgia, serif; font-size: 36px; }
+.admin-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; font-size: 13px; }
+.admin-bar a { color: var(--accent); }
+.admin-bar form { margin: 0; }
+.link-button { background: none; border: 0; padding: 0; color: var(--muted); font-size: 13px; }
+.link-button:hover { background: none; color: var(--accent); text-decoration: underline; }
+.admin-row .post-summary > p { margin-bottom: 0; }
+.status { display: inline-block; padding: 0 8px; border: 1px solid var(--line); border-radius: 3px; font-size: 11px; }
+.status-published { color: var(--accent); border-color: #c5d0bd; background: #eef2ea; }
+.editor.narrow { max-width: 420px; }
+.status-choice { border: 0; padding: 0; margin: 0 0 26px; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 13px; }
+.status-choice legend { padding: 0; margin-bottom: 10px; }
+.editor .status-choice label { display: inline-flex; align-items: center; gap: 4px; margin: 0; cursor: pointer; }
+.editor .status-choice input { display: inline-block; width: auto; margin: 0; accent-color: var(--accent); }
+.form-message { padding: 12px 16px; border: 1px solid var(--line); border-radius: 3px; font-size: 13px; margin-bottom: 26px; }
+.form-message.error { color: #8a3b2e; border-color: #e6c9c2; background: #fbf1ee; }
+.form-message.notice { color: var(--accent); border-color: #c5d0bd; background: #eef2ea; }
+.danger-zone { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; }
+button.danger { background: none; color: #8a3b2e; border-color: #e6c9c2; }
+button.danger:hover { background: #8a3b2e; color: var(--bg); }
 @media (max-width: 600px) {
   .site-shell { padding-inline: 24px; }
   .site-header { min-height: 88px; gap: 16px; }
