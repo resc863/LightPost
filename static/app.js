@@ -1,19 +1,27 @@
-const form = document.querySelector("#post-form");
+// Progressive enhancement only: every admin action also works without JavaScript.
 
-form?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const payload = Object.fromEntries(new FormData(form));
-  payload.status = "draft";
-  const response = await fetch("/api/admin/posts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "same-origin",
-    body: JSON.stringify(payload),
+// Ask before submitting destructive forms such as "delete post".
+for (const form of document.querySelectorAll("form[data-confirm]")) {
+  form.addEventListener("submit", (event) => {
+    if (!window.confirm(form.dataset.confirm)) {
+      event.preventDefault();
+    }
   });
-  if (!response.ok) {
-    alert("저장하지 못했습니다.");
-    return;
-  }
-  alert("초안으로 저장했습니다.");
-  form.reset();
-});
+}
+
+// Warn before leaving the editor with unsaved changes.
+const editor = document.querySelector("form.editor[action^='/admin/posts']");
+if (editor) {
+  let dirty = false;
+  editor.addEventListener("input", () => {
+    dirty = true;
+  });
+  editor.addEventListener("submit", () => {
+    dirty = false;
+  });
+  window.addEventListener("beforeunload", (event) => {
+    if (dirty) {
+      event.preventDefault();
+    }
+  });
+}

@@ -6,13 +6,14 @@ description = "A small personal blog built with Rust, Axum, HTML, CSS, and Vanil
 license = "MIT"
 
 [dependencies]
-axum = "0.8"
-pulldown-cmark = "0.12"
+axum = { version = "0.8", default-features = false, features = ["form", "http1", "json", "query", "tokio"] }
+getrandom = "0.4"
+maud = "0.27"
+pulldown-cmark = { version = "0.12", default-features = false, features = ["html"] }
 rusqlite = { version = "0.32", features = ["bundled"] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
-tower-http = { version = "0.6", features = ["fs", "trace"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time"] }
 
 [dev-dependencies]
+serde_json = "1"
 tower = { version = "0.5", features = ["util"] }
