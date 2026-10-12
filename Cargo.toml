@@ -1,0 +1,18 @@
+[package]
+name = "lightpost"
+version = "0.1.0"
+edition = "2021"
+description = "A small personal blog built with Rust, Axum, HTML, CSS, and Vanilla JS"
+license = "MIT"
+
+[dependencies]
+axum = "0.8"
+pulldown-cmark = "0.12"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
+tower-http = { version = "0.6", features = ["fs", "trace"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
